@@ -248,7 +248,7 @@ button.action-btn {
 
 .brand-wrapper {
     display: flex;
-    align-items: baseline; /* 글자 밑라인을 맞춰서 자연스럽게 */
+    align-items: center; /* 글자 밑라인을 맞춰서 자연스럽게 */
     gap: 15px; /* 제목과 슬로건 사이 간격 */
 }
 
