@@ -1,0 +1,247 @@
+:root {
+  --bg-color: #f3f4f6;
+  --panel-bg: #ffffff;
+  --text-color: #374151;
+  --border-color: #e5e7eb;
+  --accent-color: #2563eb;
+  --code-keyword: #d73a49;
+  --code-type: #005cc5;
+  --code-bg: #f8f9fa;
+}
+[data-theme="dark"] {
+  --bg-color: #1a1b26;
+  --panel-bg: #24283b;
+  --text-color: #c0caf5;
+  --border-color: #414868;
+  --accent-color: #7aa2f7;
+  --code-keyword: #bb9af7;
+  --code-type: #2ac3de;
+  --code-bg: #1f2335;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.3s;
+}
+
+header {
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app-logo {
+  height: 28px;
+  width: auto;
+}
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.editor-container {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+}
+.toolbar {
+  padding: 10px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  gap: 10px;
+}
+button.action-btn {
+  background-color: var(--accent-color);
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.editor-wrapper {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+.code-font-style {
+  font-family: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 20px;
+  width: 100%;
+  height: 100%;
+  border: none;
+  white-space: pre;
+  overflow: auto;
+  margin: 0;
+}
+.code-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  color: transparent;
+  background: transparent;
+  caret-color: var(--text-color);
+  resize: none;
+  outline: none;
+}
+.code-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  background-color: var(--code-bg);
+  pointer-events: none;
+  color: var(--text-color);
+}
+.kw {
+  color: var(--code-keyword);
+  font-weight: bold;
+}
+.dt {
+  color: var(--code-type);
+}
+
+/* 🔥 수정: 프리뷰 컨테이너 */
+.preview-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-color);
+}
+
+/* 🔥 수정: Mermaid 출력 박스 */
+#mermaid-output {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  /* Flex 설정을 제거하거나 아래처럼 자식에게 꽉 차게 명령해야 함 */
+  display: flex;
+  flex-direction: column;
+}
+
+/* 🔥 핵심: 중간 wrapper(.mermaid) 강제 확장 */
+#mermaid-output .mermaid {
+  flex: 1;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden;
+  display: flex; /* SVG를 중앙/확장 시키기 위해 */
+}
+
+/* 🔥 핵심: SVG 강제 확장 */
+#mermaid-output svg {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+}
+
+.error-msg {
+  color: #ff6b6b;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 50px;
+}
+
+/* 줌 컨트롤 UI */
+.zoom-controls {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 100;
+}
+.zoom-controls button {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  font-size: 1.2rem;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.zoom-controls button:hover {
+  background-color: var(--accent-color);
+  color: white;
+  transform: translateY(-2px);
+}
+.zoom-controls button {
+  width: 44px; /* 버튼 크기를 살짝 키워서 터치하기 좋게 */
+  height: 44px;
+  border: none;
+  border-radius: 12px; /* 둥글기를 더 줘서 모던하게 */
+  background-color: var(--panel-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 그림자 좀 더 진하게 */
+  border: 1px solid var(--border-color);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+  /* 아이콘 중앙 정렬 핵심 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0; /* 내부 여백 제거 */
+}
+
+/* 아이콘 자체 스타일 */
+.zoom-controls button svg {
+  transition: transform 0.3s ease; /* 아이콘 애니메이션 */
+}
+
+/* 호버 효과 */
+.zoom-controls button:hover {
+  background-color: var(--accent-color);
+  color: white; /* 아이콘 색상을 흰색으로 */
+  transform: translateY(-3px) scale(1.05); /* 살짝 위로 뜨면서 커짐 */
+  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3); /* 파란색 그림자 빛남 */
+}
+
+/* 리셋 버튼 호버 시 아이콘 회전 효과 (타겟팅 느낌) */
+.zoom-controls button#btn-reset:hover svg {
+  transform: rotate(90deg);
+}
