@@ -245,3 +245,27 @@ button.action-btn {
 .zoom-controls button#btn-reset:hover svg {
   transform: rotate(90deg);
 }
+
+.brand-wrapper {
+    display: flex;
+    align-items: baseline; /* 글자 밑라인을 맞춰서 자연스럽게 */
+    gap: 15px; /* 제목과 슬로건 사이 간격 */
+}
+
+.app-tagline {
+    font-size: 0.85rem;      /* 제목보다 작게 */
+    font-weight: 500;        /* 너무 굵지 않게 */
+    color: var(--text-color);
+    opacity: 0.6;            /* 약간 투명하게 해서 제목 강조 */
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .app-tagline {
+        display: none;
+    }
+}
+
+[data-theme="light"] .app-logo {
+    filter: invert(1);
+}

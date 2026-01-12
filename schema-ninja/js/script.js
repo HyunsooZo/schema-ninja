@@ -209,11 +209,11 @@ window.toggleTheme = function () {
 
   if (isDark) {
     body.setAttribute("data-theme", "light");
-    btn.textContent = "🌙 Dark Mode";
+    btn.textContent = "Dark Mode";
     mermaid.initialize({ theme: "default" });
   } else {
     body.setAttribute("data-theme", "dark");
-    btn.textContent = "☀️ Light Mode";
+    btn.textContent = "Light Mode";
     mermaid.initialize({ theme: "dark" });
   }
   window.visualize();
