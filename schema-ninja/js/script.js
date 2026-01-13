@@ -235,15 +235,17 @@ window.formatSQL = function () {
   let parenDepth = 0;
   clean = clean
     .replace(/\s+/g, " ")
-    .replace(/\s*,\s*/g, ", ")
-    .replace(/\s*\(\s*/g, "(")
-    .replace(/\s*\)\s*/g, ")");
+    .replace(/\s*,\s*/g, ",")
+    .replace(/\(\s*/g, "(")
+    .replace(/\s*\)/g, ")");
   for (let i = 0; i < clean.length; i++) {
     let char = clean[i];
     if (char === "(") {
       parenDepth++;
-      if (parenDepth === 1) formatted += " (\n    ";
-      else formatted += "(";
+      if (parenDepth === 1) {
+        if (formatted.endsWith(" ")) formatted = formatted.slice(0, -1);
+        formatted += " (\n    ";
+      } else formatted += "(";
     } else if (char === ")") {
       parenDepth--;
       if (parenDepth === 0) formatted += "\n)";
@@ -258,7 +260,6 @@ window.formatSQL = function () {
       formatted += char;
     }
   }
-  formatted = formatted.replace(/CREATE TABLE/gi, "\n\nCREATE TABLE");
   input.value = formatted.trim();
   updateHighlight(formatted.trim());
 };
@@ -399,6 +400,37 @@ if (resizer && editorContainer) {
       document.body.style.userSelect = "";
 
       // Trigger resize event so mermaid/panzoom can adjust if needed
+      window.dispatchEvent(new Event('resize'));
+    }
+  });
+
+  // Mobile Touch Support
+  resizer.addEventListener("touchstart", (e) => {
+    isResizing = true;
+    resizer.classList.add("resizing");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    e.preventDefault(); // Prevent scrolling check
+  }, { passive: false });
+
+  document.addEventListener("touchmove", (e) => {
+    if (!isResizing) return;
+
+    const newWidth = e.touches[0].clientX;
+    const minWidth = 200;
+    const maxWidth = window.innerWidth - 200;
+
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      editorContainer.style.width = `${newWidth}px`;
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchend", () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove("resizing");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
       window.dispatchEvent(new Event('resize'));
     }
   });
