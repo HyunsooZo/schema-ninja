@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Tool - Schema Ninja</title>
+  <link rel="stylesheet" href="css/style.css" />
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://schema-ninja-nine.vercel.app/">
+  <meta property="og:title" content="Crypto Tool - Schema Ninja">
+  <meta property="og:description" content="Encrypt, decrypt, hash, and encode text with multiple algorithms.">
+  <meta property="og:image" content="https://schema-ninja-nine.vercel.app/images/preview-logo.jpeg">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Crypto Tool - Schema Ninja">
+  <meta name="twitter:description" content="Encrypt, decrypt, hash, and encode text with multiple algorithms.">
+  <meta name="twitter:image" content="https://schema-ninja-nine.vercel.app/images/preview-logo.jpeg">
+</head>
+
+<body data-theme="dark">
+  <header>
+    <div class="brand-wrapper">
+      <h1>
+        <a href="index.html" style="display: inline-flex; align-items: center; text-decoration: none; color: inherit;">
+          <img src="images/logo.jpg" alt="Schema Ninja Logo" class="app-logo" style="cursor: pointer;" />
+        </a>
+        Crypto Tool
+      </h1>
+      <span class="app-tagline">Encrypt, decrypt, hash, and encode text.</span>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+  </header>
+
+  <main>
+    <div class="editor-container">
+      <div class="toolbar">
+        <div class="input-options">
+          <select id="algorithm-select" onchange="handleAlgorithmChange()">
+            <option value="base64">Base64</option>
+            <option value="aes">AES-256-CBC</option>
+            <option value="md5">MD5</option>
+            <option value="sha256">SHA-256</option>
+            <option value="sha512">SHA-512</option>
+            <option value="url">URL Encode</option>
+            <option value="hex">Hex Encode</option>
+            <option value="rot13">ROT13</option>
+          </select>
+
+          <input type="text" id="crypto-key" placeholder="Key (32 chars)"
+                 style="display: none;" oninput="handleInput()">
+          <input type="text" id="crypto-iv" placeholder="IV (16 chars)"
+                 style="display: none;" oninput="handleInput()">
+        </div>
+
+        <button class="action-btn" id="encrypt-btn" onclick="encryptText()">
+          Encrypt
+        </button>
+        <button class="action-btn" id="decrypt-btn" onclick="decryptText()"
+                style="background: #555">
+          Decrypt
+        </button>
+      </div>
+
+      <div class="editor-wrapper">
+        <pre id="input-highlight-layer" class="code-highlight code-font-style"></pre>
+        <textarea id="crypto-input" class="code-input code-font-style"
+                  placeholder="Enter text to encrypt/decrypt..."
+                  spellcheck="false"
+                  oninput="handleInput(this)"
+                  onscroll="syncScroll(this)">Hello World!</textarea>
+      </div>
+    </div>
+
+    <div class="resizer" id="resizer"></div>
+
+    <div class="preview-container">
+      <div class="preview-toolbar">
+        <div class="toolbar-left">
+          <span id="output-format-label" class="toggle-label">Output: Base64</span>
+        </div>
+        <button class="icon-btn" onclick="copyOutput()" title="Copy Output">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+
+      <pre><code id="crypto-output" class="code-font-style" style="display: block; width: 100%; height: 100%; margin: 0; padding: 20px; overflow: auto; background: var(--code-bg); color: var(--text-color); word-wrap: break-word; white-space: pre-wrap;">SGVsbG8gV29ybGQh</code></pre>
+    </div>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+  <script src="js/crypto-tool.js"></script>
+</body>
+
+</html>
