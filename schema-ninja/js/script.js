@@ -105,64 +105,74 @@ window.exportPNG = function () {
       return;
     }
 
-    // 1. 복제 및 정리
+    // 1. Clone the SVG content to a temporary hidden container
+    // This allows us to measure it WITHOUT any zoom/pan transforms interfering
     const clonedSvg = svgElement.cloneNode(true);
+
+    // Remove svg-pan-zoom artifacts from the clone
     const viewportGroup = clonedSvg.querySelector(".svg-pan-zoom_viewport");
     if (viewportGroup) {
       viewportGroup.removeAttribute("transform");
       viewportGroup.removeAttribute("style");
     }
+
+    // Reset attributes on the clone
     clonedSvg.removeAttribute("style");
-    clonedSvg.setAttribute("width", "100%");
-    clonedSvg.setAttribute("height", "100%");
+    clonedSvg.removeAttribute("height");
+    clonedSvg.removeAttribute("width");
 
-    // 2. 크기 계산 (안전장치 추가)
-    // viewBox가 없으면 실제 크기(getBoundingClientRect)를 사용
-    let width, height;
-    if (svgElement.hasAttribute("viewBox")) {
-      const viewBox = svgElement
-        .getAttribute("viewBox")
-        .split(" ")
-        .map(parseFloat);
-      width = viewBox[2];
-      height = viewBox[3];
-    } else {
-      const bbox = svgElement.getBoundingClientRect();
-      width = bbox.width;
-      height = bbox.height;
-      // 복제본에 viewBox 강제 주입 (렌더링 보정)
-      clonedSvg.setAttribute("viewBox", `0 0 ${width} ${height}`);
-    }
+    // Create a temporary container to measure the "natural" size
+    const tempContainer = document.createElement("div");
+    tempContainer.style.position = "absolute";
+    tempContainer.style.top = "-9999px";
+    tempContainer.style.left = "-9999px";
+    tempContainer.style.width = "auto";
+    tempContainer.style.height = "auto";
+    // Important: SVG needs to be visible to be measured, so we append to body but hidden
+    tempContainer.appendChild(clonedSvg);
+    document.body.appendChild(tempContainer);
 
-    if (!width || !height) {
-      alert("SVG 크기를 계산할 수 없습니다.");
-      return;
-    }
+    // Get the bounding box of the CONTENT
+    // We select g.root which is usually where Mermaid puts the diagram
+    // If not found, fallback to the SVG itself (though bbox might be 0 if empty)
+    const innerContent = clonedSvg.querySelector("g.root") || clonedSvg;
+    const bbox = innerContent.getBBox();
 
-    // 3. 캔버스 준비 (2배 해상도)
+    // Clean up
+    document.body.removeChild(tempContainer);
+
+    // Add some padding
+    const padding = 20;
+    const x = bbox.x - padding;
+    const y = bbox.y - padding;
+    const width = bbox.width + padding * 2;
+    const height = bbox.height + padding * 2;
+
+    // Set viewBox to exactly matches the content
+    clonedSvg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
+
+    // 3. Canvas setup
     const canvas = document.createElement("canvas");
-    const scale = 2;
+    const scale = 3; // Ultra High resolution
     canvas.width = width * scale;
     canvas.height = height * scale;
     const ctx = canvas.getContext("2d");
 
-    // 4. 배경색 채우기
+    // 4. Background
     const isDark = document.body.getAttribute("data-theme") === "dark";
     ctx.fillStyle = isDark ? "#1a1b26" : "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 5. 이미지 변환
+    // 5. Draw
     const svgData = new XMLSerializer().serializeToString(clonedSvg);
     const img = new Image();
-
-    // Base64 변환 시 한글/특수문자 깨짐 방지
     const svgBlob = new Blob([svgData], {
       type: "image/svg+xml;charset=utf-8",
     });
     const url = URL.createObjectURL(svgBlob);
 
     img.onload = function () {
-      ctx.drawImage(img, 0, 0, width * scale, height * scale);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
       const link = document.createElement("a");
       link.download = `schema_ninja_${new Date().getTime()}.png`;
       link.href = canvas.toDataURL("image/png");
@@ -171,16 +181,15 @@ window.exportPNG = function () {
     };
 
     img.onerror = function () {
+      console.error("Image load error");
       alert("이미지 변환 중 오류가 발생했습니다.");
     };
 
     img.src = url;
+
   } catch (e) {
     console.error(e);
-    alert(
-      "내보내기 실패! 개발자 도구(F12) Console을 확인해주세요.\n에러: " +
-        e.message
-    );
+    alert("내보내기 실패! " + e.message);
   }
 };
 
@@ -257,6 +266,17 @@ window.formatSQL = function () {
 function parseDDLtoMermaidV6(ddl) {
   let mermaidText = "erDiagram\n";
   let relationships = [];
+
+  // Extract Magic Comments (Virtual Relationships)
+  // Format: -- mermaid: Users }|--|| Orders : "friend"
+  const lines = ddl.split("\n");
+  lines.forEach(line => {
+    const match = line.match(/^\s*--\s*mermaid:\s*(.+)$/);
+    if (match) {
+      relationships.push(match[1].trim());
+    }
+  });
+
   let cleanDDL = ddl
     .replace(/--.*$/gm, "")
     .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -340,3 +360,93 @@ function parseDDLtoMermaidV6(ddl) {
 
 updateHighlight(input.value);
 window.visualize();
+
+// ------------------------------------------------------------
+// Resizable Layout Implementation
+// ------------------------------------------------------------
+const resizer = document.getElementById("resizer");
+const editorContainer = document.querySelector(".editor-container");
+
+if (resizer && editorContainer) {
+  let isResizing = false;
+
+  resizer.addEventListener("mousedown", (e) => {
+    isResizing = true;
+    resizer.classList.add("resizing");
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none"; // Disable text selection while dragging
+  });
+
+  document.addEventListener("mousemove", (e) => {
+    if (!isResizing) return;
+
+    // Calculate new width
+    // Limit min/max width for safety
+    const newWidth = e.clientX;
+    const minWidth = 200;
+    const maxWidth = window.innerWidth - 200; // Keep at least 200px for preview
+
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      editorContainer.style.width = `${newWidth}px`;
+    }
+  });
+
+  document.addEventListener("mouseup", () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove("resizing");
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      // Trigger resize event so mermaid/panzoom can adjust if needed
+      window.dispatchEvent(new Event('resize'));
+    }
+  });
+}
+
+// ------------------------------------------------------------
+// Relationship Builder Helper
+// ------------------------------------------------------------
+window.populateTableSelects = function () {
+  const sourceSel = document.getElementById("rel-source");
+  const targetSel = document.getElementById("rel-target");
+  const ddl = input.value;
+
+  // Find all create tables
+  const tables = [];
+  const regex = /CREATE\s+TABLE\s+(\w+)/gi;
+  let match;
+  while ((match = regex.exec(ddl)) !== null) {
+    tables.push(match[1]);
+  }
+
+  const options = tables.map(t => `<option value="${t}">${t}</option>`).join("");
+  sourceSel.innerHTML = options;
+  targetSel.innerHTML = options;
+};
+
+window.addRelationship = function () {
+  const source = document.getElementById("rel-source").value;
+  const target = document.getElementById("rel-target").value;
+  const type = document.getElementById("rel-type").value;
+  const label = document.getElementById("rel-label").value.trim();
+
+  if (!source || !target) return;
+
+  /* Mermaid often requires a label (colon) for relationships */
+  const labelStr = label ? ` : "${label}"` : ' : ""';
+  const magicComment = `\n-- mermaid: ${source} ${type} ${target}${labelStr}`;
+
+  // Append to editor
+  input.value += magicComment;
+  updateHighlight(input.value);
+
+  // Close modal
+  document.getElementById('rel-modal').close();
+
+  // Visualize
+  window.visualize();
+
+  // Scroll to bottom
+  input.scrollTop = input.scrollHeight;
+};
