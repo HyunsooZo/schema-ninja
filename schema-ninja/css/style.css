@@ -327,6 +327,28 @@ button.action-btn {
   .app-tagline {
     display: none;
   }
+
+  main {
+    flex-direction: column;
+  }
+
+  .editor-container {
+    width: 100% !important;
+    min-width: 0;
+    height: 40vh;
+    border-right: none;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  /* 모바일에서는 가로 리사이징 숨김 (복잡도 방지) */
+  .resizer {
+    display: none;
+  }
+
+  .preview-container {
+    width: 100%;
+    flex: 1;
+  }
 }
 
 [data-theme="light"] .app-logo {
