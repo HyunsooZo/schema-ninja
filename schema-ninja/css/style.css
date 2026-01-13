@@ -7,6 +7,7 @@
   --code-keyword: #d73a49;
   --code-type: #005cc5;
   --code-bg: #f8f9fa;
+  --toggle-off: #cbd5e1;
 }
 
 [data-theme="dark"] {
@@ -18,6 +19,7 @@
   --code-keyword: #bb9af7;
   --code-type: #2ac3de;
   --code-bg: #1f2335;
+  --toggle-off: #414868;
 }
 
 * {
@@ -75,18 +77,14 @@ main {
 }
 
 .editor-container {
-  /* width: 40%;  <-- Removed fixed width for resizer */
   min-width: 200px;
-  /* Minimum width */
   width: 400px;
-  /* Initial default width */
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--border-color);
   background-color: var(--panel-bg);
 }
 
-/* Resizer Handle */
 .resizer {
   width: 5px;
   cursor: col-resize;
@@ -107,18 +105,13 @@ main {
   display: flex;
   gap: 10px;
   overflow-x: auto;
-  /* Scroll horizontally */
   white-space: nowrap;
-  /* Prevent wrapping */
   -ms-overflow-style: none;
-  /* Hide scrollbar IE/Edge */
   scrollbar-width: none;
-  /* Hide scrollbar Firefox */
 }
 
 .toolbar::-webkit-scrollbar {
   display: none;
-  /* Hide scrollbar Chrome/Safari */
 }
 
 button.action-btn {
@@ -181,7 +174,41 @@ button.action-btn {
   color: var(--code-type);
 }
 
-/* 🔥 수정: 프리뷰 컨테이너 */
+/* JSON Syntax Highlighting */
+.json-string {
+  color: #50fa7b;
+}
+
+.json-number {
+  color: #bd93f9;
+}
+
+.json-keyword {
+  color: #ff79c6;
+}
+
+.json-bracket {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.json-punctuation {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+[data-theme="light"] .json-string {
+  color: #22863a;
+}
+
+[data-theme="light"] .json-number {
+  color: #6f42c1;
+}
+
+[data-theme="light"] .json-keyword {
+  color: #d73a49;
+}
+
 .preview-container {
   flex: 1;
   position: relative;
@@ -189,27 +216,22 @@ button.action-btn {
   background-color: var(--bg-color);
 }
 
-/* 🔥 수정: Mermaid 출력 박스 */
 #mermaid-output {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* Flex 설정을 제거하거나 아래처럼 자식에게 꽉 차게 명령해야 함 */
   display: flex;
   flex-direction: column;
 }
 
-/* 🔥 핵심: 중간 wrapper(.mermaid) 강제 확장 */
 #mermaid-output .mermaid {
   flex: 1;
   width: 100% !important;
   height: 100% !important;
   overflow: hidden;
   display: flex;
-  /* SVG를 중앙/확장 시키기 위해 */
 }
 
-/* 🔥 핵심: SVG 강제 확장 */
 #mermaid-output svg {
   width: 100% !important;
   height: 100% !important;
@@ -225,7 +247,6 @@ button.action-btn {
   margin-top: 50px;
 }
 
-/* 줌 컨트롤 UI */
 .zoom-controls {
   position: absolute;
   bottom: 20px;
@@ -237,69 +258,33 @@ button.action-btn {
 }
 
 .zoom-controls button {
-  width: 40px;
-  height: 40px;
-  border: none;
-  border-radius: 8px;
-  background-color: var(--panel-bg);
-  color: var(--text-color);
-  font-size: 1.2rem;
-  cursor: pointer;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: 1px solid var(--border-color);
-  transition: all 0.2s;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.zoom-controls button:hover {
-  background-color: var(--accent-color);
-  color: white;
-  transform: translateY(-2px);
-}
-
-.zoom-controls button {
   width: 44px;
-  /* 버튼 크기를 살짝 키워서 터치하기 좋게 */
   height: 44px;
   border: none;
   border-radius: 12px;
-  /* 둥글기를 더 줘서 모던하게 */
   background-color: var(--panel-bg);
   color: var(--text-color);
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  /* 그림자 좀 더 진하게 */
   border: 1px solid var(--border-color);
   transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-
-  /* 아이콘 중앙 정렬 핵심 */
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0;
-  /* 내부 여백 제거 */
 }
 
-/* 아이콘 자체 스타일 */
 .zoom-controls button svg {
   transition: transform 0.3s ease;
-  /* 아이콘 애니메이션 */
 }
 
-/* 호버 효과 */
 .zoom-controls button:hover {
   background-color: var(--accent-color);
   color: white;
-  /* 아이콘 색상을 흰색으로 */
   transform: translateY(-3px) scale(1.05);
-  /* 살짝 위로 뜨면서 커짐 */
   box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
-  /* 파란색 그림자 빛남 */
 }
 
-/* 리셋 버튼 호버 시 아이콘 회전 효과 (타겟팅 느낌) */
 .zoom-controls button#btn-reset:hover svg {
   transform: rotate(90deg);
 }
@@ -307,52 +292,15 @@ button.action-btn {
 .brand-wrapper {
   display: flex;
   align-items: center;
-  /* 글자 밑라인을 맞춰서 자연스럽게 */
   gap: 15px;
-  /* 제목과 슬로건 사이 간격 */
 }
 
 .app-tagline {
   font-size: 0.85rem;
-  /* 제목보다 작게 */
   font-weight: 500;
-  /* 너무 굵지 않게 */
   color: var(--text-color);
   opacity: 0.6;
-  /* 약간 투명하게 해서 제목 강조 */
   letter-spacing: 0.5px;
-}
-
-@media (max-width: 768px) {
-  .app-tagline {
-    display: none;
-  }
-
-  main {
-    flex-direction: column;
-  }
-
-  .editor-container {
-    width: 100% !important;
-    min-width: 0;
-    height: 40vh;
-    border-right: none;
-    border-bottom: 2px solid var(--border-color);
-  }
-
-  /* 모바일에서는 가로 리사이징 숨김 (복잡도 방지) */
-  .resizer {
-    display: none;
-  }
-
-  .preview-container {
-    width: 100%;
-    flex: 1;
-  }
-}
-
-[data-theme="light"] .app-logo {
-  filter: invert(1);
 }
 
 /* Modal Styles */
@@ -421,4 +369,374 @@ dialog.modal::backdrop {
   background: var(--accent-color);
   border-color: var(--accent-color);
   color: white;
+}
+
+/* ============================================================ */
+/* JSON to Java Page Specific Styles */
+/* ============================================================ */
+
+#json-input {
+  color: transparent;
+  background: transparent;
+  caret-color: var(--text-color);
+}
+
+#json-input::placeholder {
+  color: var(--text-color);
+  opacity: 0.4;
+}
+
+.input-options {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-right: auto;
+}
+
+.input-options input[type="text"] {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.radio-group {
+  display: flex;
+  gap: 10px;
+  color: var(--text-color);
+}
+
+.radio-group label {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.preview-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 15px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--panel-bg);
+  flex-shrink: 0;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.options-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.opt-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.divider-vertical {
+  width: 1px;
+  height: 24px;
+  background-color: var(--border-color);
+  margin: 0 5px;
+}
+
+.divider-vertical.small {
+  height: 16px;
+}
+
+.chk-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+.chk-label input[type="checkbox"] {
+  accent-color: var(--accent-color);
+  cursor: pointer;
+}
+
+.sub-chk {
+  font-size: 0.8rem;
+  opacity: 0.8;
+}
+
+.sub-chk input:disabled + span,
+.sub-chk input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.toggle-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.toggle-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--toggle-off);
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: var(--accent-color);
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px var(--accent-color);
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+  margin-left: auto;
+}
+
+.icon-btn:hover {
+  background-color: var(--border-color);
+  color: var(--accent-color);
+}
+
+.java-output {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 20px;
+  overflow: auto;
+  background: transparent !important;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  border: none;
+}
+
+.hljs {
+  background: transparent !important;
+}
+
+[data-theme="dark"] .hljs-meta {
+  color: #e5c07b !important;
+  font-weight: bold;
+}
+
+[data-theme="light"] .hljs-meta {
+  color: #986801 !important;
+  font-weight: bold;
+}
+
+.preview-container pre {
+  flex: 1;
+  margin: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ============================================================ */
+/* Landing Page Styles */
+/* ============================================================ */
+
+.landing-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.landing-container {
+  max-width: 900px;
+  width: 100%;
+}
+
+.landing-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 40px;
+  color: var(--text-color);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.tool-card {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 30px;
+  text-decoration: none;
+  color: var(--text-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tool-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: var(--accent-color);
+}
+
+.card-icon {
+  font-size: 3rem;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--accent-color);
+}
+
+.card-icon svg {
+  transition: transform 0.3s ease;
+}
+
+.tool-card:hover .card-icon svg {
+  transform: scale(1.1);
+}
+
+.tool-card h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--text-color);
+}
+
+.tool-card p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-color);
+  opacity: 0.7;
+  line-height: 1.6;
+}
+
+.card-link-text {
+  color: var(--accent-color);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* ============================================================ */
+/* Mobile Responsive */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+  .app-tagline {
+    display: none;
+  }
+
+  main {
+    flex-direction: column;
+  }
+
+  .editor-container {
+    width: 100% !important;
+    min-width: 0;
+    height: 40vh;
+    border-right: none;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  .resizer {
+    display: none;
+  }
+
+  .preview-container {
+    width: 100%;
+    flex: 1;
+  }
+
+  .preview-toolbar {
+    gap: 10px;
+    justify-content: flex-start;
+  }
+
+  .icon-btn {
+    margin-left: 0;
+  }
+
+  .landing-title {
+    font-size: 1.5rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+[data-theme="light"] .app-logo {
+  filter: invert(1);
 }

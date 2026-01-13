@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON to Java - Schema Ninja</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link id="highlight-theme" rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+</head>
+
+<body data-theme="dark">
+<header>
+    <div class="brand-wrapper">
+        <h1>
+            <img src="images/logo.jpg" alt="Schema Ninja Logo" class="app-logo" />
+            JSON to Java
+        </h1>
+        <span class="app-tagline">Visualize your SQL DDL instantly.</span>
+    </div>
+
+    <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+</header>
+
+<main>
+    <div class="editor-container">
+        <div class="toolbar">
+            <div class="input-options">
+                <input type="text" id="class-name" placeholder="Root Name" value="Root"
+                       oninput="handleInput()">
+            </div>
+            <button class="action-btn" onclick="prettifyJSON()">Prettify</button>
+        </div>
+
+        <div class="editor-wrapper">
+                <pre id="json-highlight-layer" class="code-highlight code-font-style"></pre>
+                <textarea id="json-input" class="code-input code-font-style" placeholder="Paste your JSON here..."
+                          spellcheck="false" oninput="handleJSONInput(this)" onscroll="syncJSONScroll(this)">{
+  "id": "0001",
+  "type": "donut",
+  "name": "Cake",
+  "ppu": 0.55,
+  "batters": {
+    "batter": [
+      {
+        "id": "1001",
+        "type": "Regular"
+      },
+      {
+        "id": "1002",
+        "type": "Chocolate"
+      },
+      {
+        "id": "1003",
+        "type": "Blueberry"
+      },
+      {
+        "id": "1004",
+        "type": "Devil's Food"
+      }
+    ]
+  },
+  "topping": [
+    {
+      "id": "5001",
+      "type": "None"
+    },
+    {
+      "id": "5002",
+      "type": "Glazed"
+    },
+    {
+      "id": "5005",
+      "type": "Sugar"
+    },
+    {
+      "id": "5007",
+      "type": "Powdered Sugar"
+    },
+    {
+      "id": "5006",
+      "type": "Chocolate with Sprinkles"
+    },
+    {
+      "id": "5003",
+      "type": "Chocolate"
+    },
+    {
+      "id": "5004",
+      "type": "Maple"
+    }
+  ]
+}</textarea>
+        </div>
+    </div>
+
+    <div class="resizer" id="resizer"></div>
+
+    <div class="preview-container">
+        <div class="preview-toolbar">
+            <div class="toolbar-left">
+                <div class="toggle-wrapper">
+                    <span class="toggle-label">Class</span>
+                    <label class="switch">
+                        <input type="checkbox" id="type-record" onchange="toggleOptions(); handleInput()">
+                        <span class="slider round"></span>
+                    </label>
+                    <span class="toggle-label">Record</span>
+                </div>
+
+                <div class="divider-vertical"></div>
+
+                <div id="class-options" class="options-group">
+                    <div class="opt-item">
+                        <label class="chk-label" title="Generate Getters and Setters">
+                            <input type="checkbox" id="opt-getset" onchange="toggleLombok('opt-getset', 'opt-lombok-getset'); handleInput()">
+                            Getters/Setters
+                        </label>
+                        <label class="chk-label sub-chk" title="Use Lombok @Getter @Setter">
+                            <input type="checkbox" id="opt-lombok-getset" disabled onchange="handleInput()">
+                            Lombok
+                        </label>
+                    </div>
+
+                    <div class="divider-vertical small"></div>
+
+                    <div class="opt-item">
+                        <label class="chk-label" title="Generate All Arguments Constructor">
+                            <input type="checkbox" id="opt-ctor" onchange="toggleLombok('opt-ctor', 'opt-lombok-ctor'); handleInput()">
+                            Constructor
+                        </label>
+                        <label class="chk-label sub-chk" title="Use Lombok @AllArgsConstructor">
+                            <input type="checkbox" id="opt-lombok-ctor" disabled onchange="handleInput()">
+                            Lombok
+                        </label>
+                    </div>
+
+                    <div class="divider-vertical small"></div>
+                </div>
+
+                <div class="options-group">
+                    <label class="chk-label" title="Add @JsonProperty annotation">
+                        <input type="checkbox" id="opt-jsonprop" onchange="handleInput()">
+                        @JsonProperty
+                    </label>
+                </div>
+            </div>
+
+            <button class="icon-btn" onclick="copyCode()" title="Copy Code">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>
+        </div>
+
+        <pre><code id="java-output" class="language-java java-output"></code></pre>
+    </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+<script src="js/json-converter.js"></script>
+
+<script>
+    function toggleTheme() {
+        const body = document.body;
+        const btn = document.querySelector(".theme-toggle");
+        const isDark = body.getAttribute("data-theme") === "dark";
+        const hljsTheme = document.getElementById("highlight-theme");
+        if (isDark) {
+            body.setAttribute("data-theme", "light");
+            btn.textContent = "Dark Mode";
+            hljsTheme.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-light.min.css";
+        } else {
+            body.setAttribute("data-theme", "dark");
+            btn.textContent = "Light Mode";
+            hljsTheme.href = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css";
+        }
+        if (window.handleInput) window.handleInput();
+    }
+
+    function toggleLombok(parentId, childId) {
+        const parent = document.getElementById(parentId);
+        const child = document.getElementById(childId);
+        if (parent && child) {
+            child.disabled = !parent.checked;
+            if (!parent.checked) child.checked = false;
+        }
+    }
+
+    function toggleOptions() {
+        const isRecord = document.getElementById("type-record").checked;
+        const classOptions = document.getElementById("class-options");
+        if (classOptions) {
+            classOptions.style.display = isRecord ? "none" : "flex";
+        }
+    }
+    toggleOptions();
+</script>
+</body>
+</html>
