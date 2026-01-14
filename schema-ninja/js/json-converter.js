@@ -215,14 +215,14 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
                 kotlinType = "String";
             } else if (typeof value === "number") {
                 if (Number.isInteger(value)) {
-                    javaType = "int";
+                    javaType = "Integer";
                     kotlinType = "Int";
                 } else {
-                    javaType = "double";
+                    javaType = "Double";
                     kotlinType = "Double";
                 }
             } else if (typeof value === "boolean") {
-                javaType = "boolean";
+                javaType = "Boolean";
                 kotlinType = "Boolean";
             } else if (Array.isArray(value)) {
                 if (value.length > 0) {
