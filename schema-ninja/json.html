@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JSON to Java - Schema Ninja</title>
+    <title>JSON to Object - Ninja Dev Tools</title>
     <link rel="stylesheet" href="css/style.css" />
     <link id="highlight-theme" rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
@@ -18,9 +18,9 @@
                     style="display: inline-flex; align-items: center; text-decoration: none; color: inherit;">
                     <img src="images/logo.jpg" alt="Schema Ninja Logo" class="app-logo" style="cursor: pointer;" />
                 </a>
-                JSON to Java
+                JSON to Object
             </h1>
-            <span class="app-tagline">Convert JSON objects into Java Classes or Records.</span>
+            <span class="app-tagline">Convert JSON to Java or Kotlin Classes.</span>
         </div>
 
         <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
@@ -30,6 +30,10 @@
         <div class="editor-container">
             <div class="toolbar">
                 <div class="input-options">
+                    <select id="language-select" onchange="toggleLanguageOptions(); handleInput()">
+                        <option value="java">Java</option>
+                        <option value="kotlin">Kotlin</option>
+                    </select>
                     <input type="text" id="class-name" placeholder="Root Name" value="Root" oninput="handleInput()">
                 </div>
                 <button class="action-btn" onclick="prettifyJSON()">Prettify</button>
@@ -176,6 +180,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/java.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/kotlin.min.js"></script>
     <script src="js/json-converter.js"></script>
 
     <script>
@@ -212,7 +217,25 @@
                 classOptions.style.display = isRecord ? "none" : "flex";
             }
         }
+
+        function toggleLanguageOptions() {
+            const languageSelect = document.getElementById("language-select");
+            const isKotlin = languageSelect && languageSelect.value === "kotlin";
+
+            // Hide Class/Record toggle for Kotlin (always data class)
+            const typeRecordWrapper = document.querySelector(".toggle-wrapper");
+            const classOptions = document.getElementById("class-options");
+
+            if (typeRecordWrapper) {
+                typeRecordWrapper.style.display = isKotlin ? "none" : "flex";
+            }
+            if (classOptions) {
+                classOptions.style.display = isKotlin ? "none" : "flex";
+            }
+        }
+
         toggleOptions();
+        toggleLanguageOptions();
     </script>
 </body>
 

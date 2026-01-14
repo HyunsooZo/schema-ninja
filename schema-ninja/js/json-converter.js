@@ -71,9 +71,12 @@ window.handleInput = function () {
         const rootClassName = classNameInput.value || "Root";
         const isRecord = typeRecord ? typeRecord.checked : false;
         const optNested = document.getElementById("opt-nested");
+        const languageSelect = document.getElementById("language-select");
+        const selectedLanguage = languageSelect ? languageSelect.value : "java";
 
         // 옵션 상태 읽기
         const options = {
+            language: selectedLanguage,
             useGetSet: optGetSet ? optGetSet.checked : false,
             useLombokGetSet: (optLombokGetSet && !optLombokGetSet.disabled) ? optLombokGetSet.checked : false,
             useCtor: optCtor ? optCtor.checked : false,
@@ -97,7 +100,8 @@ window.handleInput = function () {
             }
             fullCode += result.classes.map(c => c.code).join("\n\n");
 
-            let highlightedCode = hljs.highlight(fullCode, { language: 'java' }).value;
+            const highlightLang = options.language === "kotlin" ? "kotlin" : "java";
+            let highlightedCode = hljs.highlight(fullCode, { language: highlightLang }).value;
             highlightedCode = highlightedCode.replace(/(@[A-Z]\w*)/g, '<span class="hljs-meta">$1</span>');
             highlightedCode = highlightedCode.replace(
                 /(<span class="hljs-meta">@JsonProperty<\/span>\s*\()(&quot;.*?&quot;)(\))/g,
@@ -173,7 +177,11 @@ function switchTab(result, index) {
     }
     fullCode += selectedClass.code;
 
-    let highlightedCode = hljs.highlight(fullCode, { language: 'java' }).value;
+    const languageSelect = document.getElementById("language-select");
+    const selectedLanguage = languageSelect ? languageSelect.value : "java";
+    const highlightLang = selectedLanguage === "kotlin" ? "kotlin" : "java";
+
+    let highlightedCode = hljs.highlight(fullCode, { language: highlightLang }).value;
     highlightedCode = highlightedCode.replace(/(@[A-Z]\w*)/g, '<span class="hljs-meta">$1</span>');
     highlightedCode = highlightedCode.replace(
         /(<span class="hljs-meta">@JsonProperty<\/span>\s*\()(&quot;.*?&quot;)(\))/g,
@@ -196,53 +204,75 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
         for (const [key, value] of Object.entries(obj)) {
             const fieldName = toCamelCase(key);
             const originalKey = key;
-            let type = "Object";
+            let javaType = "Object";
+            let kotlinType = "Any";
 
             if (value === null) {
-                type = "Object";
+                javaType = "Object";
+                kotlinType = "Any?";
             } else if (typeof value === "string") {
-                type = "String";
+                javaType = "String";
+                kotlinType = "String";
             } else if (typeof value === "number") {
-                type = Number.isInteger(value) ? "int" : "double";
+                if (Number.isInteger(value)) {
+                    javaType = "int";
+                    kotlinType = "Int";
+                } else {
+                    javaType = "double";
+                    kotlinType = "Double";
+                }
             } else if (typeof value === "boolean") {
-                type = "boolean";
+                javaType = "boolean";
+                kotlinType = "Boolean";
             } else if (Array.isArray(value)) {
                 if (value.length > 0) {
                     const firstItem = value[0];
                     if (typeof firstItem === "object" && firstItem !== null) {
                         const subClassName = capitalize(fieldName) + "Item";
                         parseObject(firstItem, subClassName);
-                        type = `List<${subClassName}>`;
-                        usedImports.add("java.util.List");
+                        javaType = `List<${subClassName}>`;
+                        kotlinType = `List<${subClassName}>`;
+                        usedImports.add(options.language === "kotlin" ? "kotlin.collections.List" : "java.util.List");
                     } else if (typeof firstItem === "string") {
-                        type = "List<String>";
-                        usedImports.add("java.util.List");
+                        javaType = "List<String>";
+                        kotlinType = "List<String>";
+                        usedImports.add(options.language === "kotlin" ? "kotlin.collections.List" : "java.util.List");
                     } else if (typeof firstItem === "number") {
-                        type = Number.isInteger(firstItem) ? "List<Integer>" : "List<Double>";
-                        usedImports.add("java.util.List");
+                        if (Number.isInteger(firstItem)) {
+                            javaType = "List<Integer>";
+                            kotlinType = "List<Int>";
+                        } else {
+                            javaType = "List<Double>";
+                            kotlinType = "List<Double>";
+                        }
+                        usedImports.add(options.language === "kotlin" ? "kotlin.collections.List" : "java.util.List");
                     } else {
-                        type = "List<Object>";
-                        usedImports.add("java.util.List");
+                        javaType = "List<Object>";
+                        kotlinType = "List<Any>";
+                        usedImports.add(options.language === "kotlin" ? "kotlin.collections.List" : "java.util.List");
                     }
                 } else {
-                    type = "List<Object>";
-                    usedImports.add("java.util.List");
+                    javaType = "List<Object>";
+                    kotlinType = "List<Any>";
+                    usedImports.add(options.language === "kotlin" ? "kotlin.collections.List" : "java.util.List");
                 }
             } else if (typeof value === "object") {
                 const subClassName = capitalize(fieldName);
                 parseObject(value, subClassName);
-                type = subClassName;
+                javaType = subClassName;
+                kotlinType = subClassName;
             }
 
-            fields.push({ originalKey, fieldName, type });
+            fields.push({ originalKey, fieldName, javaType, kotlinType });
         }
 
         let classCode = "";
 
-        // 1. Record Type
-        if (isRecord) {
+        // Kotlin Generation
+        if (options.language === "kotlin") {
+            // Kotlin data class
             const fieldParams = fields.map(f => {
-                let param = `${f.type} ${f.fieldName}`;
+                let param = `val ${f.fieldName}: ${f.kotlinType}`;
                 if (options.useJsonProp) {
                     usedImports.add("com.fasterxml.jackson.annotation.JsonProperty");
                     return `@JsonProperty("${f.originalKey}") ${param}`;
@@ -252,56 +282,77 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
 
             if (fields.length > 0) {
                 const joinedParams = fieldParams.join(",\n    ");
-                classCode = `public record ${className}(\n    ${joinedParams}\n) {}`;
+                classCode = `data class ${className}(\n    ${joinedParams}\n)`;
             } else {
-                classCode = `public record ${className}() {}`;
+                classCode = `data class ${className}()`;
             }
-
         }
-        // 2. Class Type
+        // Java Generation
         else {
-            let classAnnotations = "";
+            // 1. Record Type
+            if (isRecord) {
+                const fieldParams = fields.map(f => {
+                    let param = `${f.javaType} ${f.fieldName}`;
+                    if (options.useJsonProp) {
+                        usedImports.add("com.fasterxml.jackson.annotation.JsonProperty");
+                        return `@JsonProperty("${f.originalKey}") ${param}`;
+                    }
+                    return param;
+                });
 
-            if (options.useGetSet && options.useLombokGetSet) {
-                classAnnotations += "@Getter\n@Setter\n";
-                usedImports.add("lombok.Getter");
-                usedImports.add("lombok.Setter");
-            }
-            if (options.useCtor && options.useLombokCtor) {
-                classAnnotations += "@AllArgsConstructor\n";
-                usedImports.add("lombok.AllArgsConstructor");
-            }
-
-            classCode = `${classAnnotations}public class ${className} {\n`;
-
-            fields.forEach(f => {
-                if (options.useJsonProp) {
-                    classCode += `    @JsonProperty("${f.originalKey}")\n`;
-                    usedImports.add("com.fasterxml.jackson.annotation.JsonProperty");
+                if (fields.length > 0) {
+                    const joinedParams = fieldParams.join(",\n    ");
+                    classCode = `public record ${className}(\n    ${joinedParams}\n) {}`;
+                } else {
+                    classCode = `public record ${className}() {}`;
                 }
-                classCode += `    private ${f.type} ${f.fieldName};\n`;
-            });
 
-            // Constructor (Manual)
-            if (options.useCtor && !options.useLombokCtor && fields.length > 0) {
-                classCode += `\n    public ${className}(${fields.map(f => `${f.type} ${f.fieldName}`).join(", ")}) {\n`;
+            }
+            // 2. Class Type
+            else {
+                let classAnnotations = "";
+
+                if (options.useGetSet && options.useLombokGetSet) {
+                    classAnnotations += "@Getter\n@Setter\n";
+                    usedImports.add("lombok.Getter");
+                    usedImports.add("lombok.Setter");
+                }
+                if (options.useCtor && options.useLombokCtor) {
+                    classAnnotations += "@AllArgsConstructor\n";
+                    usedImports.add("lombok.AllArgsConstructor");
+                }
+
+                classCode = `${classAnnotations}public class ${className} {\n`;
+
                 fields.forEach(f => {
-                    classCode += `        this.${f.fieldName} = ${f.fieldName};\n`;
+                    if (options.useJsonProp) {
+                        classCode += `    @JsonProperty("${f.originalKey}")\n`;
+                        usedImports.add("com.fasterxml.jackson.annotation.JsonProperty");
+                    }
+                    classCode += `    private ${f.javaType} ${f.fieldName};\n`;
                 });
-                classCode += `    }\n`;
-            }
 
-            // Getters and Setters (Manual)
-            if (options.useGetSet && !options.useLombokGetSet) {
-                classCode += `\n    // Getters and Setters`;
-                fields.forEach((f) => {
-                    const capName = capitalize(f.fieldName);
-                    classCode += `\n    public ${f.type} get${capName}() {\n        return ${f.fieldName};\n    }\n`;
-                    classCode += `\n    public void set${capName}(${f.type} ${f.fieldName}) {\n        this.${f.fieldName} = ${f.fieldName};\n    }\n`;
-                });
-            }
+                // Constructor (Manual)
+                if (options.useCtor && !options.useLombokCtor && fields.length > 0) {
+                    classCode += `\n    public ${className}(${fields.map(f => `${f.javaType} ${f.fieldName}`).join(", ")}) {\n`;
+                    fields.forEach(f => {
+                        classCode += `        this.${f.fieldName} = ${f.fieldName};\n`;
+                    });
+                    classCode += `    }\n`;
+                }
 
-            classCode += `}`;
+                // Getters and Setters (Manual)
+                if (options.useGetSet && !options.useLombokGetSet) {
+                    classCode += `\n    // Getters and Setters`;
+                    fields.forEach((f) => {
+                        const capName = capitalize(f.fieldName);
+                        classCode += `\n    public ${f.javaType} get${capName}() {\n        return ${f.fieldName};\n    }\n`;
+                        classCode += `\n    public void set${capName}(${f.javaType} ${f.fieldName}) {\n        this.${f.fieldName} = ${f.fieldName};\n    }\n`;
+                    });
+                }
+
+                classCode += `}`;
+            }
         }
 
         classes.push({ name: className, code: classCode });
@@ -326,13 +377,21 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
             return lines.map(line => line ? '    ' + line : line).join('\n');
         }).join('\n\n');
 
-        // Insert inner classes before the closing brace of Root
         let rootCode = rootClass.code;
-        const lastBraceIndex = rootCode.lastIndexOf('}');
-        rootCode = rootCode.substring(0, lastBraceIndex) +
-            '\n    // Nested Classes\n' +
-            indentedInner + '\n' +
-            rootCode.substring(lastBraceIndex);
+
+        // Kotlin: data class ends with ) - need to add { } wrapper
+        if (options.language === "kotlin") {
+            // Kotlin data class: "data class Root(...)" -> "data class Root(...) { ... }"
+            rootCode = rootCode.trimEnd() + ' {\n    // Nested Classes\n' + indentedInner + '\n}';
+        }
+        // Java: has closing brace
+        else {
+            const lastBraceIndex = rootCode.lastIndexOf('}');
+            rootCode = rootCode.substring(0, lastBraceIndex) +
+                '\n    // Nested Classes\n' +
+                indentedInner + '\n' +
+                rootCode.substring(lastBraceIndex);
+        }
 
         return {
             imports: usedImports,
