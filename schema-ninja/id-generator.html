@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ID Generator - Ninja Dev Tools</title>
+    <link rel="stylesheet" href="css/style.css" />
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="ID Generator - Ninja Dev Tools">
+    <meta property="og:description" content="Generate unique IDs: UUID, ULID, TSID, CUID2, KSUID, Nano ID.">
+    <meta property="og:image" content="images/preview-logo.jpeg">
+</head>
+
+<body data-theme="dark">
+    <header>
+        <div class="brand-wrapper">
+            <h1>
+                <a href="index.html"
+                    style="display: inline-flex; align-items: center; text-decoration: none; color: inherit;">
+                    <img src="images/logo.jpg" alt="Schema Ninja Logo" class="app-logo" style="cursor: pointer;" />
+                </a>
+                ID Generator
+            </h1>
+            <span class="app-tagline">Generate unique IDs with various formats.</span>
+        </div>
+
+        <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+    </header>
+
+    <main>
+        <div class="editor-container">
+            <div class="toolbar">
+                <div class="input-options">
+                    <select id="id-type-select" onchange="generateIDs()">
+                        <option value="uuid">UUID</option>
+                        <option value="ulid">ULID</option>
+                        <option value="tsid">TSID</option>
+                        <option value="cuid2">CUID2</option>
+                        <option value="ksuid">KSUID</option>
+                        <option value="nanoid">Nano ID</option>
+                    </select>
+
+                    <select id="quantity-select" onchange="generateIDs()">
+                        <option value="1">1</option>
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+
+                <button class="action-btn" onclick="generateIDs()">
+                    Generate
+                </button>
+            </div>
+
+            <div class="editor-wrapper">
+                <pre id="input-highlight-layer" class="code-highlight code-font-style"></pre>
+                <textarea id="id-input" class="code-input code-font-style"
+                    placeholder="Click 'Generate' to create IDs..." spellcheck="false" readonly
+                    style="cursor: default;"></textarea>
+            </div>
+        </div>
+
+        <div class="resizer" id="resizer"></div>
+
+        <div class="preview-container">
+            <div class="preview-toolbar">
+                <div class="toolbar-left">
+                    <span id="output-format-label" class="toggle-label">Generated IDs</span>
+                </div>
+                <button class="icon-btn" onclick="copyOutput()" title="Copy All IDs">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <pre><code id="id-output" class="code-font-style" style="display: block; width: 100%; height: 100%; margin: 0; padding: 20px; overflow: auto; background: var(--code-bg); color: var(--text-color); word-wrap: break-word; white-space: pre-wrap;"></code></pre>
+        </div>
+    </main>
+
+    <script src="js/id-generator.js"></script>
+</body>
+
+</html>
