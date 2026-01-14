@@ -287,9 +287,14 @@ function parseDDLtoMermaidV6(ddl) {
   for (let i = 1; i < chunks.length; i++) {
     let chunk = chunks[i].trim();
     if (!chunk) continue;
-    let tableNameMatch = chunk.match(/^(\w+)/);
+    // Support schema.table format (e.g., orcs.admin_member)
+    let tableNameMatch = chunk.match(/^([\w.]+)/);
     if (!tableNameMatch) continue;
     let tableName = tableNameMatch[1];
+    // Strip schema prefix for cleaner ERD display
+    if (tableName.includes('.')) {
+      tableName = tableName.split('.').pop();
+    }
     let firstParen = chunk.indexOf("(");
     let lastParen = chunk.lastIndexOf(")");
     if (firstParen === -1 || lastParen === -1) continue;
@@ -319,11 +324,15 @@ function parseDDLtoMermaidV6(ddl) {
         return;
       if (firstWord === "CONSTRAINT" || firstWord === "FOREIGN") {
         let fkMatch = line.match(
-          /FOREIGN\s+KEY\s*\((.*?)\)\s*REFERENCES\s+(\w+)/i
+          /FOREIGN\s+KEY\s*\((.*?)\)\s*REFERENCES\s+([\w.]+)/i
         );
         if (fkMatch) {
           let fkCol = fkMatch[1];
           let refTable = fkMatch[2];
+          // Strip schema prefix from reference table
+          if (refTable.includes('.')) {
+            refTable = refTable.split('.').pop();
+          }
           fks.push(fkCol);
           relationships.push(
             `${tableName} }o--|| ${refTable} : "FK: ${fkCol}"`
@@ -446,10 +455,16 @@ window.populateTableSelects = function () {
 
   // Find all create tables
   const tables = [];
-  const regex = /CREATE\s+TABLE\s+(\w+)/gi;
+  // Support schema.table format
+  const regex = /CREATE\s+TABLE\s+([\w.]+)/gi;
   let match;
   while ((match = regex.exec(ddl)) !== null) {
-    tables.push(match[1]);
+    let tableName = match[1];
+    // Strip schema prefix for dropdown display
+    if (tableName.includes('.')) {
+      tableName = tableName.split('.').pop();
+    }
+    tables.push(tableName);
   }
 
   const options = tables.map(t => `<option value="${t}">${t}</option>`).join("");
