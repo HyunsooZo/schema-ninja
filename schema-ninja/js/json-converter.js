@@ -37,7 +37,7 @@ function updateJSONHighlight(text) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         // Strings (keys and values)
-        .replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, function(match) {
+        .replace(/"([^"\\]*(\\.[^"\\]*)*)"/g, function (match) {
             return `<span class="json-string">${match}</span>`;
         })
         // Numbers
@@ -58,8 +58,11 @@ function updateJSONHighlight(text) {
 // Handle Input
 window.handleInput = function () {
     const inputVal = jsonInput.value;
+    const tabsContainer = document.getElementById("class-tabs");
+
     if (!inputVal.trim()) {
         javaOutput.innerHTML = "";
+        if (tabsContainer) tabsContainer.style.display = "none";
         return;
     }
 
@@ -67,6 +70,7 @@ window.handleInput = function () {
         const json = JSON.parse(inputVal);
         const rootClassName = classNameInput.value || "Root";
         const isRecord = typeRecord ? typeRecord.checked : false;
+        const optNested = document.getElementById("opt-nested");
 
         // 옵션 상태 읽기
         const options = {
@@ -74,34 +78,59 @@ window.handleInput = function () {
             useLombokGetSet: (optLombokGetSet && !optLombokGetSet.disabled) ? optLombokGetSet.checked : false,
             useCtor: optCtor ? optCtor.checked : false,
             useLombokCtor: (optLombokCtor && !optLombokCtor.disabled) ? optLombokCtor.checked : false,
-            useJsonProp: optJsonProp ? optJsonProp.checked : false
+            useJsonProp: optJsonProp ? optJsonProp.checked : false,
+            useNested: optNested ? optNested.checked : false
         };
 
-        // 1. Java Code 생성
-        const javaCode = generateJavaCode(json, rootClassName, isRecord, options);
+        // 1. Java Code 생성 (structured format)
+        const result = generateJavaCode(json, rootClassName, isRecord, options);
 
-        // 2. Highlight.js 1차 파싱 (HTML 엔티티로 변환됨: " -> &quot;)
-        let highlightedCode = hljs.highlight(javaCode, { language: 'java' }).value;
+        // result = { imports: Set, classes: [{name, code}] }
 
-        // 3. [Ninja Patch 1] 애노테이션 이름 강제 색칠 (@JsonProperty 등)
-        highlightedCode = highlightedCode.replace(/(@[A-Z]\w*)/g, '<span class="hljs-meta">$1</span>');
+        // 2. Nested mode or single class: show as one block
+        if (options.useNested || result.classes.length === 1) {
+            if (tabsContainer) tabsContainer.style.display = "none";
 
-        // 4. [Ninja Patch 2] @JsonProperty 내부의 문자열이 색칠 안 된 경우 강제 색칠
-        // 설명: Patch 1을 거친 <span...>@JsonProperty</span> 뒤에 오는 (&quot;...&quot;) 패턴을 찾음
-        highlightedCode = highlightedCode.replace(
-            /(<span class="hljs-meta">@JsonProperty<\/span>\s*\()(&quot;.*?&quot;)(\))/g,
-            function(match, prefix, content, suffix) {
-                // 이미 highlight.js가 색칠했다면(span 태그가 있다면) 건드리지 않음
-                if (content.includes('<span')) return match;
-                // 색칠 안 된 경우(Record 첫 줄 등) 강제로 문자열 클래스 적용
-                return `${prefix}<span class="hljs-string">${content}</span>${suffix}`;
+            let fullCode = "";
+            if (result.imports.size > 0) {
+                fullCode = Array.from(result.imports).sort().map(imp => `import ${imp};`).join("\n") + "\n\n";
             }
-        );
+            fullCode += result.classes.map(c => c.code).join("\n\n");
 
-        javaOutput.innerHTML = highlightedCode;
+            let highlightedCode = hljs.highlight(fullCode, { language: 'java' }).value;
+            highlightedCode = highlightedCode.replace(/(@[A-Z]\w*)/g, '<span class="hljs-meta">$1</span>');
+            highlightedCode = highlightedCode.replace(
+                /(<span class="hljs-meta">@JsonProperty<\/span>\s*\()(&quot;.*?&quot;)(\))/g,
+                function (match, prefix, content, suffix) {
+                    if (content.includes('<span')) return match;
+                    return `${prefix}<span class="hljs-string">${content}</span>${suffix}`;
+                }
+            );
+            javaOutput.innerHTML = highlightedCode;
+
+        }
+        // 3. Tab mode: multiple classes
+        else {
+            if (tabsContainer) {
+                tabsContainer.style.display = "flex";
+                tabsContainer.innerHTML = "";
+
+                result.classes.forEach((cls, index) => {
+                    const btn = document.createElement("button");
+                    btn.className = "tab-button" + (index === 0 ? " active" : "");
+                    btn.textContent = cls.name;
+                    btn.onclick = () => switchTab(result, index);
+                    tabsContainer.appendChild(btn);
+                });
+
+                // Show first class by default
+                switchTab(result, 0);
+            }
+        }
 
     } catch (e) {
         javaOutput.innerHTML = `<span style="color: #ff6b6b;">Invalid JSON: ${e.message}</span>`;
+        if (tabsContainer) tabsContainer.style.display = "none";
     }
 };
 
@@ -124,6 +153,37 @@ window.prettifyJSON = function () {
         alert(`Invalid JSON: ${e.message}`);
     }
 };
+
+// Switch Tab (for multi-class mode)
+function switchTab(result, index) {
+    const tabsContainer = document.getElementById("class-tabs");
+    if (!tabsContainer) return;
+
+    // Update active tab
+    const tabs = tabsContainer.querySelectorAll(".tab-button");
+    tabs.forEach((tab, i) => {
+        tab.classList.toggle("active", i === index);
+    });
+
+    // Show selected class
+    const selectedClass = result.classes[index];
+    let fullCode = "";
+    if (result.imports.size > 0) {
+        fullCode = Array.from(result.imports).sort().map(imp => `import ${imp};`).join("\n") + "\n\n";
+    }
+    fullCode += selectedClass.code;
+
+    let highlightedCode = hljs.highlight(fullCode, { language: 'java' }).value;
+    highlightedCode = highlightedCode.replace(/(@[A-Z]\w*)/g, '<span class="hljs-meta">$1</span>');
+    highlightedCode = highlightedCode.replace(
+        /(<span class="hljs-meta">@JsonProperty<\/span>\s*\()(&quot;.*?&quot;)(\))/g,
+        function (match, prefix, content, suffix) {
+            if (content.includes('<span')) return match;
+            return `${prefix}<span class="hljs-string">${content}</span>${suffix}`;
+        }
+    );
+    javaOutput.innerHTML = highlightedCode;
+}
 
 // Main Generation Function
 function generateJavaCode(json, rootClassName, isRecord, options) {
@@ -244,7 +304,7 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
             classCode += `}`;
         }
 
-        classes.push(classCode);
+        classes.push({ name: className, code: classCode });
     }
 
     if (Array.isArray(json)) {
@@ -255,12 +315,36 @@ function generateJavaCode(json, rootClassName, isRecord, options) {
         parseObject(json, rootClassName);
     }
 
-    let importBlock = "";
-    if (usedImports.size > 0) {
-        importBlock = Array.from(usedImports).sort().map(imp => `import ${imp};`).join("\n") + "\n\n";
+    // Nested mode: wrap all inner classes inside Root
+    if (options.useNested && classes.length > 1) {
+        const rootClass = classes[classes.length - 1]; // Root is last (reversed order)
+        const innerClasses = classes.slice(0, -1); // All except Root
+
+        // Indent inner classes
+        const indentedInner = innerClasses.map(cls => {
+            const lines = cls.code.split('\n');
+            return lines.map(line => line ? '    ' + line : line).join('\n');
+        }).join('\n\n');
+
+        // Insert inner classes before the closing brace of Root
+        let rootCode = rootClass.code;
+        const lastBraceIndex = rootCode.lastIndexOf('}');
+        rootCode = rootCode.substring(0, lastBraceIndex) +
+            '\n    // Nested Classes\n' +
+            indentedInner + '\n' +
+            rootCode.substring(lastBraceIndex);
+
+        return {
+            imports: usedImports,
+            classes: [{ name: rootClass.name, code: rootCode }]
+        };
     }
 
-    return importBlock + classes.reverse().join("\n\n");
+    // Return structured data (reversed so Root comes first)
+    return {
+        imports: usedImports,
+        classes: classes.reverse()
+    };
 }
 
 function toCamelCase(str) {

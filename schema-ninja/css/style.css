@@ -32,8 +32,10 @@ body {
   font-family: "Segoe UI", sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  height: 100vh; /* min-height 대신 height 고정 */
-  overflow: hidden; /* 전체 화면 스크롤 방지 */
+  height: 100vh;
+  /* min-height 대신 height 고정 */
+  overflow: hidden;
+  /* 전체 화면 스크롤 방지 */
   display: flex;
   flex-direction: column;
   transition: background 0.3s;
@@ -46,7 +48,8 @@ header {
   align-items: center;
   border-bottom: 1px solid var(--border-color);
   background-color: var(--panel-bg);
-  flex-shrink: 0; /* 헤더 크기 고정 */
+  flex-shrink: 0;
+  /* 헤더 크기 고정 */
 }
 
 h1 {
@@ -75,7 +78,8 @@ h1 {
 main {
   display: flex;
   flex: 1;
-  overflow: hidden; /* 메인 영역 스크롤 방지 (내부 패널이 담당) */
+  overflow: hidden;
+  /* 메인 영역 스크롤 방지 (내부 패널이 담당) */
   min-height: 0;
   width: 100%;
 }
@@ -169,17 +173,48 @@ button.action-btn {
 }
 
 /* JSON Syntax Highlighting */
-.kw { color: var(--code-keyword); font-weight: bold; }
-.dt { color: var(--code-type); }
-.json-string { color: #50fa7b; }
-.json-number { color: #bd93f9; }
-.json-keyword { color: #ff79c6; }
-.json-bracket { color: var(--text-color); font-weight: bold; }
-.json-punctuation { color: var(--text-color); opacity: 0.7; }
+.kw {
+  color: var(--code-keyword);
+  font-weight: bold;
+}
 
-[data-theme="light"] .json-string { color: #22863a; }
-[data-theme="light"] .json-number { color: #6f42c1; }
-[data-theme="light"] .json-keyword { color: #d73a49; }
+.dt {
+  color: var(--code-type);
+}
+
+.json-string {
+  color: #50fa7b;
+}
+
+.json-number {
+  color: #bd93f9;
+}
+
+.json-keyword {
+  color: #ff79c6;
+}
+
+.json-bracket {
+  color: var(--text-color);
+  font-weight: bold;
+}
+
+.json-punctuation {
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+[data-theme="light"] .json-string {
+  color: #22863a;
+}
+
+[data-theme="light"] .json-number {
+  color: #6f42c1;
+}
+
+[data-theme="light"] .json-keyword {
+  color: #d73a49;
+}
 
 
 /* ============================================================ */
@@ -192,8 +227,8 @@ button.action-btn {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 0;    
-  overflow: hidden; 
+  min-height: 0;
+  overflow: hidden;
   background-color: var(--bg-color);
 }
 
@@ -204,49 +239,49 @@ button.action-btn {
 
 /* 1. 스크롤 틀 (껍데기) */
 .preview-container pre {
-    display: block !important;
-    overflow: auto !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    flex: 1 !important;
-    min-height: 0 !important;
+  display: block !important;
+  overflow: auto !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1 !important;
+  min-height: 0 !important;
 }
 
 /* 2. 알맹이 (코드 내용) - highlight.js 등 모든 스타일 무시하고 강제 적용 */
 #java-output {
-    display: block !important;
-    width: auto !important;
-    min-width: 100% !important;
-    white-space: pre !important;
-    overflow: visible !important;
-    height: auto !important;
-    padding: 20px !important;
-    box-sizing: border-box !important;
+  display: block !important;
+  width: auto !important;
+  min-width: 100% !important;
+  white-space: pre !important;
+  overflow: visible !important;
+  height: auto !important;
+  padding: 20px !important;
+  box-sizing: border-box !important;
 }
 
 /* 모바일에서는 줄바꿈 허용 (선택사항) */
 @media (max-width: 768px) {
-    #java-output {
-        white-space: pre-wrap !important;
-        width: 100% !important;
-    }
+  #java-output {
+    white-space: pre-wrap !important;
+    width: 100% !important;
+  }
 }
 
 .preview-container pre code.hljs {
-    display: block !important;
-    width: auto !important;
-    min-width: 100% !important;
-    overflow: visible !important;
-    padding: 20px;
-    background: transparent !important;
-    font-family: inherit;
-    font-size: 14px;
-    line-height: 1.6;
-    border: none;
-    height: auto;
-    box-sizing: border-box;
-    white-space: pre !important;
+  display: block !important;
+  width: auto !important;
+  min-width: 100% !important;
+  overflow: visible !important;
+  padding: 20px;
+  background: transparent !important;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  border: none;
+  height: auto;
+  box-sizing: border-box;
+  white-space: pre !important;
 }
 
 /* ============================================================ */
@@ -364,6 +399,47 @@ dialog.modal::backdrop {
   color: white;
 }
 
+/* Tab UI for Multiple Classes */
+.class-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0 12px;
+  background-color: var(--panel-bg);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.class-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  opacity: 0.6;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.tab-button:hover {
+  opacity: 0.9;
+  background-color: rgba(128, 128, 128, 0.1);
+}
+
+.tab-button.active {
+  opacity: 1;
+  border-bottom-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 /* ============================================================ */
 /* JSON to Java Page Specific Styles */
 /* ============================================================ */
@@ -479,7 +555,7 @@ dialog.modal::backdrop {
   opacity: 0.8;
 }
 
-.sub-chk input:disabled + span,
+.sub-chk input:disabled+span,
 .sub-chk input:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -533,15 +609,15 @@ dialog.modal::backdrop {
   transition: .4s;
 }
 
-input:checked + .slider {
+input:checked+.slider {
   background-color: var(--accent-color);
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px var(--accent-color);
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   transform: translateX(20px);
 }
 
@@ -713,13 +789,13 @@ input:checked + .slider:before {
   .icon-btn {
     margin-left: 0;
   }
-  
+
   /* 모바일에서는 줄바꿈 허용 및 Block 복귀 */
   .preview-container pre code.java-output,
   .preview-container pre code.hljs {
     height: auto !important;
     overflow: auto !important;
-    white-space: pre-wrap !important; 
+    white-space: pre-wrap !important;
     word-break: break-all;
     display: block !important;
     width: 100% !important;
